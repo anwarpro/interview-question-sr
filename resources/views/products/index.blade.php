@@ -10,12 +10,18 @@
         <form action="" method="get" class="card-header">
             <div class="form-row justify-content-between">
                 <div class="col-md-2">
-                    <input type="text" name="title" placeholder="Product Title" class="form-control">
+                    <input type="text" name="title" value="@if($title) {{$title}} @endif" placeholder="Product Title"
+                           class="form-control">
                 </div>
                 <div class="col-md-2">
                     <select name="variant" id="" class="form-control">
-                        @foreach(\App\Models\ProductVariant::all()->pluck('variant')->unique() as $variant)
-                            <option value="{{$variant}}">{{$variant}}</option>
+                        @foreach(\App\Models\Variant::all() as $variant)
+                            <optgroup label="{{$variant->title}}">
+                                @foreach(\App\Models\ProductVariant::where('variant_id', $variant->id)->get()->pluck('variant')->unique() as $v)
+                                    <option value="{{$v}}">{{$v}}</option>
+                                @endforeach
+                            </optgroup>
+
                         @endforeach
                     </select>
                 </div>

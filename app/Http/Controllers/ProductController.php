@@ -21,7 +21,9 @@ class ProductController extends Controller
     {
         $products = Product::query();
 
+        $title = null;
         if ($request->has('title') && $request->title) {
+            $title = $request->title;
             $products = $products->where('title', 'LIKE', '%' . $request->title . '%');
         }
 
@@ -45,7 +47,7 @@ class ProductController extends Controller
         $products = $products->paginate(2);
 
 //        dd($products);
-        return view('products.index', compact('products'));
+        return view('products.index', compact('products', 'title'));
     }
 
     /**
@@ -76,7 +78,7 @@ class ProductController extends Controller
                 $productImage = new ProductImage;
                 $productImage->file_path = $image;
                 $productImage->product_id = $product->id;
-                
+
                 $productImage->save();
             }
         }
