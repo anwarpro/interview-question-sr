@@ -31,8 +31,10 @@ class ProductController extends Controller
             $products = $products->whereDate('created_at', '=', Carbon::parse($request->date));
         }
 
-//        if ($request->has('variant')) {
-//            $products = $products->varients()->wherePivot('variant', $request->has('variant'));
+//        $variant = null;
+//        if ($request->has('variant') && $request->variant) {
+//            $variant = $request->variant;
+//            $products = $products->varients()->wherePivot('variant', $variant);
 //        }
 //
 //        if ($request->has('price_from') && $request->price_from) {
@@ -150,12 +152,22 @@ class ProductController extends Controller
      */
     public function update(Request $request, Product $product)
     {
-        $productImages = $request->only('product_image');
 
-//        if (!empty($productImages)) {
-//            $productImages = ProductImage::create($productImages);
-//            $product->productImages()->save($productImages);
-//        }
+        $productImages = $request->product_image;
+
+        if (!empty($productImages)) {
+            foreach ($productImages as $image) {
+                
+                if (!ProductImage::where('file_path', $image)->where('product_id', $product->id)->get()->count()) {
+                    $productImage = new ProductImage;
+                    $productImage->file_path = $image;
+                    $productImage->product_id = $product->id;
+
+                    $productImage->save();
+                }
+
+            }
+        }
 
         $variants = $request->product_variant;
 

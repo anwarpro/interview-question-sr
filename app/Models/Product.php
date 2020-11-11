@@ -54,7 +54,7 @@ class Product extends Model
             'product_name' => $this->title,
             'product_sku' => $this->sku,
             'product_description' => $this->description,
-            'images' => $this->productImages ?? [],
+            'images' => $this->images ?? [],
             'product_variant' => $product_variant ?? [],
             'product_variant_prices' => $product_variant_prices ?? []
         ];

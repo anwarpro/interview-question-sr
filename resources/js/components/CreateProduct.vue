@@ -245,6 +245,13 @@ export default {
     },
     mounted() {
         console.log('Component mounted.')
+        if (this.edit) {
+            this.product.images.forEach(item => {
+                let file = {size: 123, name: "Icon", type: "image/png"};
+                var url = "/" + item.file_path;
+                this.$refs.myVueDropzone.manuallyAddFile(file, url);
+            })
+        }
     }
 }
 </script>
