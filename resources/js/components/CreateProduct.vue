@@ -24,7 +24,10 @@
                         <h6 class="m-0 font-weight-bold text-primary">Media</h6>
                     </div>
                     <div class="card-body border">
-                        <vue-dropzone ref="myVueDropzone" id="dropzone" :options="dropzoneOptions"></vue-dropzone>
+                        <vue-dropzone ref="myVueDropzone" @vdropzone-success="afterComplete" id="dropzone"
+                                      :options="dropzoneOptions">
+
+                        </vue-dropzone>
                     </div>
                 </div>
             </div>
@@ -49,16 +52,19 @@
                             </div>
                             <div class="col-md-8">
                                 <div class="form-group">
-                                    <label v-if="product_variant.length != 1" @click="product_variant.splice(index,1); checkVariant"
+                                    <label v-if="product_variant.length != 1"
+                                           @click="product_variant.splice(index,1); checkVariant"
                                            class="float-right text-primary"
                                            style="cursor: pointer;">Remove</label>
                                     <label v-else for="">.</label>
-                                    <input-tag v-model="item.tags" @input="checkVariant" class="form-control"></input-tag>
+                                    <input-tag v-model="item.tags" @input="checkVariant"
+                                               class="form-control"></input-tag>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div class="card-footer" v-if="product_variant.length < variants.length && product_variant.length < 3">
+                    <div class="card-footer"
+                         v-if="product_variant.length < variants.length && product_variant.length < 3">
                         <button @click="newVariant" class="btn btn-primary">Add another option</button>
                     </div>
 
@@ -91,7 +97,8 @@
             </div>
         </div>
 
-        <button @click="saveProduct" type="submit" class="btn btn-lg btn-primary">Save</button>
+        <button v-if="edit" @click="updateProduct" type="submit" class="btn btn-lg btn-primary">Update</button>
+        <button v-else="edit" @click="saveProduct" type="submit" class="btn btn-lg btn-primary">Save</button>
         <button type="button" class="btn btn-secondary btn-lg">Cancel</button>
     </section>
 </template>
@@ -100,6 +107,8 @@
 import vue2Dropzone from 'vue2-dropzone'
 import 'vue2-dropzone/dist/vue2Dropzone.min.css'
 import InputTag from 'vue-input-tag'
+
+const token = document.head.querySelector('meta[name="csrf-token"]').content
 
 export default {
     components: {
@@ -110,26 +119,34 @@ export default {
         variants: {
             type: Array,
             required: true
+        },
+        edit: {
+            type: Boolean,
+            default: false
+        },
+        product: {
+            type: Array,
+            default: []
         }
     },
     data() {
         return {
-            product_name: '',
-            product_sku: '',
-            description: '',
-            images: [],
-            product_variant: [
+            product_name: this.edit ? this.product.product_name : '',
+            product_sku: this.edit ? this.product.product_name : '',
+            description: this.edit ? this.product.product_description : '',
+            images: this.edit ? this.product.images : [],
+            product_variant: this.edit ? this.product.product_variant : [
                 {
                     option: this.variants[0].id,
                     tags: []
                 }
             ],
-            product_variant_prices: [],
+            product_variant_prices: this.edit ? this.product.product_variant_prices : [],
             dropzoneOptions: {
-                url: 'https://httpbin.org/post',
+                url: '/upload',
                 thumbnailWidth: 150,
                 maxFilesize: 0.5,
-                headers: {"My-Awesome-Header": "header value"}
+                headers: {"X-CSRF-TOKEN": token}
             }
         }
     },
@@ -145,6 +162,11 @@ export default {
                 option: available_variants[0],
                 tags: []
             })
+        },
+
+        afterComplete(file, response) {
+            console.log(response);
+            this.images.push(response.file)
         },
 
         // check the variant and render all the combination
@@ -190,6 +212,27 @@ export default {
 
 
             axios.post('/product', product).then(response => {
+                console.log(response.data);
+            }).catch(error => {
+                console.log(error);
+            })
+
+            console.log(product);
+        },
+
+        // update product into database
+        updateProduct() {
+            let product = {
+                title: this.product_name,
+                sku: this.product_sku,
+                description: this.description,
+                product_image: this.images,
+                product_variant: this.product_variant,
+                product_variant_prices: this.product_variant_prices
+            }
+
+
+            axios.put('/product/' + this.product.product_id, product).then(response => {
                 console.log(response.data);
             }).catch(error => {
                 console.log(error);

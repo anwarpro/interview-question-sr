@@ -7,7 +7,7 @@ use Faker\Generator as Faker;
 
 $factory->define(Variant::class, function (Faker $faker) {
     return [
-        'title' => $faker->randomElement(array('Color', 'Size', 'Style', 'Material', 'Title')),
+        'title' => $faker->unique()->randomElement(array('Color', 'Size')),
         'description' => $faker->text
     ];
 });

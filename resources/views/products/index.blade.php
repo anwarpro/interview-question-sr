@@ -6,7 +6,6 @@
         <h1 class="h3 mb-0 text-gray-800">Products</h1>
     </div>
 
-
     <div class="card">
         <form action="" method="get" class="card-header">
             <div class="form-row justify-content-between">
@@ -15,7 +14,9 @@
                 </div>
                 <div class="col-md-2">
                     <select name="variant" id="" class="form-control">
-
+                        @foreach(\App\Models\ProductVariant::all()->pluck('variant')->unique() as $variant)
+                            <option value="{{$variant}}">{{$variant}}</option>
+                        @endforeach
                     </select>
                 </div>
 
@@ -24,7 +25,8 @@
                         <div class="input-group-prepend">
                             <span class="input-group-text">Price Range</span>
                         </div>
-                        <input type="text" name="price_from" aria-label="First name" placeholder="From" class="form-control">
+                        <input type="text" name="price_from" aria-label="First name" placeholder="From"
+                               class="form-control">
                         <input type="text" name="price_to" aria-label="Last name" placeholder="To" class="form-control">
                     </div>
                 </div>
@@ -52,31 +54,47 @@
 
                     <tbody>
 
-                    <tr>
-                        <td>1</td>
-                        <td>T-Shirt <br> Created at : 25-Aug-2020</td>
-                        <td>Quality product in low cost</td>
-                        <td>
-                            <dl class="row mb-0" style="height: 80px; overflow: hidden" id="variant">
+                    @foreach($products as $product)
+                        <tr>
+                            <td>{{$loop->iteration}}</td>
+                            <td>{{$product->title}} <br> Created at : {{$product->created_at->format('d-M-Y')}}
+                            </td>
+                            <td style="max-width: 200px">{{$product->description}}</td>
+                            <td>
+                                <dl class="row mb-0" style="height: 80px; overflow: hidden"
+                                    id="variant-{{$product->id}}">
 
-                                <dt class="col-sm-3 pb-0">
-                                    SM/ Red/ V-Nick
-                                </dt>
-                                <dd class="col-sm-9">
-                                    <dl class="row mb-0">
-                                        <dt class="col-sm-4 pb-0">Price : {{ number_format(200,2) }}</dt>
-                                        <dd class="col-sm-8 pb-0">InStock : {{ number_format(50,2) }}</dd>
-                                    </dl>
-                                </dd>
-                            </dl>
-                            <button onclick="$('#variant').toggleClass('h-auto')" class="btn btn-sm btn-link">Show more</button>
-                        </td>
-                        <td>
-                            <div class="btn-group btn-group-sm">
-                                <a href="{{ route('product.edit', 1) }}" class="btn btn-success">Edit</a>
-                            </div>
-                        </td>
-                    </tr>
+                                    @foreach($product->product_variant_price as $productPrice)
+                                        <dt class="col-sm-3 pb-0">
+
+                                            {{$productPrice->product_variant_one()->where('product_id', $product->id)->get()->first()->variant}}
+                                            / {{$productPrice->product_variant_two()->where('product_id', $product->id)->get()->first()->variant}}
+                                        </dt>
+
+                                        <dd class="col-sm-9">
+
+                                            <dl class="row mb-0">
+                                                <dt class="col-sm-4 pb-0">Price
+                                                    : {{ number_format($productPrice->price,2) }}</dt>
+                                                <dd class="col-sm-8 pb-0">InStock
+                                                    : {{ number_format($productPrice->stock,2) }}</dd>
+                                            </dl>
+
+                                            @endforeach
+                                        </dd>
+                                </dl>
+                                <button onclick="$('#variant-{{$product->id}}').toggleClass('h-auto')"
+                                        class="btn btn-sm btn-link">Show
+                                    more
+                                </button>
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{{ route('product.edit', $product) }}" class="btn btn-success">Edit</a>
+                                </div>
+                            </td>
+                        </tr>
+                    @endforeach
 
                     </tbody>
 
@@ -88,10 +106,13 @@
         <div class="card-footer">
             <div class="row justify-content-between">
                 <div class="col-md-6">
-                    <p>Showing 1 to 10 out of 100</p>
+                    <p>
+                        Showing {{($products->currentpage()-1)*$products->perpage()+1}}
+                        to {{$products->currentpage()*$products->perpage()}} out
+                        of {{$products->total()}}</p>
                 </div>
                 <div class="col-md-2">
-
+                    {{$products->links()}}
                 </div>
             </div>
         </div>
